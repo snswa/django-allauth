@@ -5,6 +5,8 @@ from django.core.validators import validate_email, ValidationError
 
 from emailconfirmation.models import EmailAddress
 
+from allauth.account.app_settings import EMAIL_REQUIRED
+
 def get_login_redirect_url(request):
     """
     Returns a url to redirect to after the login
@@ -35,7 +37,7 @@ def generate_unique_username(txt):
             i += 1
         except User.DoesNotExist:
             return ret
-        
+
 
 def valid_email_or_none(email):
     ret = None
@@ -46,7 +48,7 @@ def valid_email_or_none(email):
     except ValidationError:
         pass
     return ret
-        
+
 
 def get_email_address(email, exclude_user=None):
     """
@@ -57,6 +59,9 @@ def get_email_address(email, exclude_user=None):
     EmailAddress.  In case a User.email match is found the result is
     returned in a temporary EmailAddress instance.
     """
+    if not EMAIL_REQUIRED and email.strip() == '':
+        # Email was not provided, but not required.
+        return None
     try:
         emailaddresses = EmailAddress.objects
         if exclude_user:
